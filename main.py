@@ -1,10 +1,19 @@
 from libraries.image_processor import * # Functions for process the image
 from os import environ
+from sys import argv
 import pdb
 
-def main():
-    filename = "/app/images/clock.jpeg"
+DEFAULT_IMAGE_PATH = "./images/clock.jpeg"
 
+def image_path():
+    if len(argv) > 1:
+        return argv[1]
+    else:
+        return DEFAULT_IMAGE_PATH
+
+
+def main():
+    filename = image_path()
     # Loads an image
     src = load_image(filename)
 

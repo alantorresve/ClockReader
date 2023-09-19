@@ -8,6 +8,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+Specify the path of the image
+```bash
+python main.py ./images/clock.jpeg
+```
 
 ### Run with Docker 🐳
 ---
