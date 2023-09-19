@@ -8,7 +8,7 @@ def resize_image(src, width):
     return resized_image
 
 def main():
-    filename = "clock12.png"
+    filename = "images/clock1.png"
 
     # Loads an image
     src = cv2.imread(filename, cv2.IMREAD_COLOR)
