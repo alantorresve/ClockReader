@@ -34,6 +34,26 @@ def main():
         for circle in circles[0, :]:
             src = detect_line(circle, src, gray)
 
+   # Detect clock hands
+    filtered_lines = []  # Initialize an empty list to store filtered lines
+
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for circle in circles[0, :]:
+            src = detect_line(circle, src, gray)
+
+   # After detecting clock hands
+    clock_hands = detect_clock_hands(filtered_lines)
+
+    # Calculate the angles for the clock hands
+    hour_hand_angle = clock_hands['hour']['angle']
+    minutes_hand_angle = clock_hands['minutes']['angle']
+    seconds_hand_angle = clock_hands['seconds']['angle']
+
+    # Calculate the exact time
+    exact_time = detect_exact_time(clock_hands)
+    print("Exact Time:", exact_time)
+
     # Showing results
     print('salio todo bien!')
     if environ.get('DOCKER_ENV'):
