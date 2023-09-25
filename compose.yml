@@ -1,0 +1,9 @@
+version: '3'
+services:
+  clock_reader:
+    image: clockreader
+    command: bash -c "while true; do sleep 1000; done"
+    volumes:
+      - ./:/app/
+    environment:
+      DOCKER_ENV: 1
