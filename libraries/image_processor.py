@@ -23,8 +23,7 @@ def process_circles(gray_image):
                                minDist=gray_image.shape[0] / 1,
                                param1=100, param2=30, minRadius=200, maxRadius=500)
 
-
-def detect_line(circle, source_image, gray_image):
+def detect_line(circle, source_image, gray_image, filtered_lines):
     center = (circle[0], circle[1])
     radius = circle[2]
     # Draw circle center
@@ -36,91 +35,170 @@ def detect_line(circle, source_image, gray_image):
     edges = cv2.Canny(gray_image, 50, 150)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=60, maxLineGap=5)
 
-    filtered_lines = []  # Initialize an empty list to store filtered lines
-
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
+            angle = (np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi - 90) % 360  # Adjusted angle calculation
             if abs(y1 - center[1]) < 20 or abs(y2 - center[1]) < 20:
-                cv2.line(source_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-                angle = np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi  # Calculate the angle of the line
+                line_with_angle = np.append(line[0], angle)  # Add the angle to the line
+                
+                # Existing line filtering logic
                 found = False
-
-                # Check if the current line is similar to any existing lines
-                for existing_line in filtered_lines:
-                    if abs(angle - existing_line['angle']) < 10:
-                        # If the angle is similar, compare and keep the longer line
-                        length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-                        existing_length = np.sqrt(
-                            (existing_line['x2'] - existing_line['x1']) ** 2 +
-                            (existing_line['y2'] - existing_line['y1']) ** 2
-                        )
-                        if length > existing_length:
-                            # Update the existing line
-                            existing_line['x1'], existing_line['y1'] = x1, y1
-                            existing_line['x2'], existing_line['y2'] = x2, y2
-                            existing_line['angle'] = angle
-                        found = True
-                        break
-
-                # If no similar line was found, add the current line as a new filtered line
+                if len(filtered_lines) > 0:
+                    for existing_line in filtered_lines:
+                        if abs(angle - existing_line[-1]) < 10:
+                            length = np.sqrt((x2 - x1) * 2 + (y2 - y1) * 2)
+                            length_ = np.sqrt(
+                                (existing_line[2] - existing_line[0]) ** 2 +
+                                (existing_line[3] - existing_line[1]) ** 2
+                            )
+                            if length_ > length:
+                                existing_line[0], existing_line[1] = x1, y1
+                                existing_line[2], existing_line[3] = x2, y2
+                                existing_line[-1] = angle
+                            found = True
+                            break
                 if not found:
-                    filtered_lines.append({
-                        'x1': x1,
-                        'y1': y1,
-                        'x2': x2,
-                        'y2': y2,
-                        'angle': angle
-                    })
+                    filtered_lines.append([x1, y1, x2, y2, angle])
+
+    for line in filtered_lines:
+        x1, y1, x2, y2, angle = line
+        cv2.line(source_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
     return source_image
 
-def detect_clock_hands(filtered_lines):
-    # Sort the lines by length from longest to shortest
-    sorted_lines = sorted(filtered_lines, key=lambda x: np.sqrt((x['x2'] - x['x1'])**2 + (x['y2'] - x['y1'])**2), reverse=True)
+# def detect_clock_hands(filtered_lines):
+#     # Sort the lines by length from longest to shortest
+#     sorted_lines = sorted(filtered_lines, key=lambda x: np.sqrt((x[2] - x[0])*2 + (x[3] - x[1])*2), reverse=True)
 
-    clock_hands = {
-        'hour': None,
-        'minutes': None,
-        'seconds': None
+#     clock_hands = {
+#         'hour': None,
+#         'minutes': None,
+#         'seconds': None
+#     }
+
+#     # Take the three longest lines (seconds, minutes, and hour)
+#     for i, line in enumerate(sorted_lines[:3]):
+#         x1, y1, x2, y2, angle = line
+#         if i == 0:
+#             clock_hands['seconds'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
+#         elif i == 1:
+#             clock_hands['minutes'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
+#         elif i == 2:
+#             clock_hands['hour'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
+
+#     return clock_hands
+
+# def verify_hands_by_length(hands_data):
+#     # Calculate length for each hand and store in the dictionary
+#     for hand, data in hands_data.items():
+#         coords = data.get('coords', (0, 0, 0, 0))
+#         x1, y1, x2, y2 = coords
+#         length = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
+#         hands_data[hand]['length'] = length
+
+#     # Print hands_data for debugging
+#     print(hands_data)
+
+#     # Sort hands based on their length
+#     sorted_hands = sorted(hands_data.items(), key=lambda item: item[1].get('length', 0), reverse=True)
+#     # Assign hands based on lengths
+#     clock_hands = {
+#         'seconds': sorted_hands[0][1],
+#         'minutes': sorted_hands[1][1],
+#         'hour': sorted_hands[2][1]
+#     }
+#     return clock_hands
+
+# def check_180_degree_shift(clock_hands):
+#     # Extract the angles
+#     hour_hand_angle = clock_hands['hour']['angle']
+#     minutes_hand_angle = clock_hands['minutes']['angle']
+
+#     # Calculate expected hours from the minute hand
+#     hour_from_minute = int(minutes_hand_angle / 30.0)
+#     hour_from_hour = int(hour_hand_angle / 30.0)
+
+#     # Check for a 180-degree shift
+#     if abs(hour_from_hour - hour_from_minute) == 6:
+#         # Adjust the angles by 180 degrees
+#         clock_hands['hour']['angle'] = (hour_hand_angle + 180) % 360
+
+#     return clock_hands
+def identify_clock_hands(filtered_lines):
+    # Compute lengths for each line in the filtered_lines list
+    for line in filtered_lines:
+        x1, y1, x2, y2 = line[:4]
+        length = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
+        line.append(length)
+
+    # Sort lines based on their lengths
+    sorted_hands = sorted(filtered_lines, key=lambda x: x[5], reverse=True)
+
+    hands = {
+        'hour': sorted_hands[2],
+        'minute': sorted_hands[1],
+        'second': sorted_hands[0]
     }
 
-    # Take the three longest lines (seconds, minutes, and hour)
-    for i, line in enumerate(sorted_lines[:3]):
-        if i == 0:
-            clock_hands['seconds'] = line
-        elif i == 1:
-            clock_hands['minutes'] = line
-        elif i == 2:
-            clock_hands['hour'] = line
+    # Find the expected minute angle based on the hours hand
+    expected_minute_angle = (hands['hour'][4] * 12) % 360
+    if abs(expected_minute_angle - hands['minute'][4]) > 15:
+        hands['minute'], hands['second'] = hands['second'], hands['minute']
 
-    return clock_hands
-
+    return hands
 def detect_exact_time(clock_hands):
-    # Check if all three clock hands are available
     if all(clock_hands.values()):
         hour_hand = clock_hands['hour']
-        minutes_hand = clock_hands['minutes']
-        seconds_hand = clock_hands['seconds']
+        minutes_hand = clock_hands['minute']
+        seconds_hand = clock_hands['second']
 
-        # Calculate the angle between the hour and minute hands
-        angle_hour_minutes = abs(hour_hand['angle'] - minutes_hand['angle'])
+        angle_seconds = seconds_hand[4]
+        angle_minutes = minutes_hand[4]
+        angle_hour = hour_hand[4]
 
-        # Calculate the angle for each hand
-        angle_seconds = seconds_hand['angle']
-        angle_minutes = minutes_hand['angle']
-        angle_hour = hour_hand['angle']
+        hours_fractional = (angle_hour / 30) % 12
+        hours_whole = int(hours_fractional)
+        minutes_from_hour = (hours_fractional - hours_whole) * 60
+        minutes_from_minute_hand = (angle_minutes / 6) % 60
 
-        # Calculate the exact time
-        hours = int(angle_hour / 30)  # Assuming 360 degrees for 12 hours
-        minutes = int((angle_minutes / 6) % 60)  # Assuming 360 degrees for 60 minutes
-        seconds = int((angle_seconds / 6) % 60)  # Assuming 360 degrees for 60 seconds
+        # Consistency check
+        if abs(minutes_from_hour - minutes_from_minute_hand) <= 1:
+            print("Minute detection is consistent between the hour and minute hands.")
+        else:
+            print("Inconsistency detected in minute hand calculation.")
+        
+        seconds = int((angle_seconds / 6) % 60)
 
-        # Format the time as "hh:mm:ss"
-        formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        formatted_time = f"{hours_whole:02d}:{int(minutes_from_minute_hand):02d}:{seconds:02d}"
 
         return formatted_time
 
     else:
         return "Clock hands not detected"
+def draw_detected_hands(src, clock_hands):
+    src_duplicate = src.copy()
+    # BGR format for OpenCV
+    COLOR_HOUR = (0, 0, 255)  # Red
+    COLOR_MINUTE = (0, 255, 0)  # Green
+    COLOR_SECOND = (255, 0, 0)  # Blue
+
+    # Drawing hour hand
+    cv2.line(src_duplicate, 
+             (clock_hands['hour'][0], clock_hands['hour'][1]),  # x1, y1
+             (clock_hands['hour'][2], clock_hands['hour'][3]),  # x2, y2
+             COLOR_HOUR, 2)
+    
+    # Drawing minute hand
+    cv2.line(src_duplicate, 
+             (clock_hands['minute'][0], clock_hands['minute'][1]), 
+             (clock_hands['minute'][2], clock_hands['minute'][3]), 
+             COLOR_MINUTE, 2)
+    
+    # Drawing second hand
+    cv2.line(src_duplicate, 
+             (clock_hands['second'][0], clock_hands['second'][1]), 
+             (clock_hands['second'][2], clock_hands['second'][3]), 
+             COLOR_SECOND, 2)
+
+    return src_duplicate

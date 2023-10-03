@@ -1,16 +1,14 @@
-from libraries.image_processor import * # Functions for process the image
+from libraries.image_processor import *  # Functions for process the image
 from os import environ
 from sys import argv
-import pdb
 
-DEFAULT_IMAGE_PATH = "./images/clock.jpeg"
+DEFAULT_IMAGE_PATH = 'images\clock1.png'
 
 def image_path():
     if len(argv) > 1:
         return argv[1]
     else:
         return DEFAULT_IMAGE_PATH
-
 
 def main():
     filename = image_path()
@@ -28,40 +26,38 @@ def main():
     gray = to_gray(src)
     circles = process_circles(gray)
 
+    filtered_lines = []  # Initialize an empty list
+
     # Processing Image
     if circles is not None:
         circles = np.uint16(np.around(circles))
         for circle in circles[0, :]:
-            src = detect_line(circle, src, gray)
+            src = detect_line(circle, src, gray, filtered_lines)  # Pass filtered_lines as an argument
+    else:
+        print("Failed to detect circles in the image.")
+        return
+    clock_hands = identify_clock_hands(filtered_lines)
+    #     # 1. Detect clock hands from lines
+    # clock_hands = detect_clock_hands(filtered_lines)
 
-   # Detect clock hands
-    filtered_lines = []  # Initialize an empty list to store filtered lines
+    # # 2. Verify hands based on length
+    # clock_hands = verify_hands_by_length(clock_hands)
 
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        for circle in circles[0, :]:
-            src = detect_line(circle, src, gray)
+    # # 3. Correct any 180-degree shift
+    # clock_hands = check_180_degree_shift(clock_hands)
 
-   # After detecting clock hands
-    clock_hands = detect_clock_hands(filtered_lines)
-
-    # Calculate the angles for the clock hands
-    hour_hand_angle = clock_hands['hour']['angle']
-    minutes_hand_angle = clock_hands['minutes']['angle']
-    seconds_hand_angle = clock_hands['seconds']['angle']
-
-    # Calculate the exact time
+    # 4. Calculate the exact time
     exact_time = detect_exact_time(clock_hands)
     print("Exact Time:", exact_time)
 
+    visual_debug_image = draw_detected_hands(src, clock_hands)
     # Showing results
-    print('salio todo bien!')
     if environ.get('DOCKER_ENV'):
         return
     cv2.imshow("detected circles and lines", src)
+    cv2.imshow("Debug Image with Detected Hands", visual_debug_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     main()
