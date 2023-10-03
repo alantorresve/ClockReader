@@ -28,20 +28,14 @@ def main():
     gray = to_gray(src)
     circles = process_circles(gray)
 
+    filtered_lines = []  # Initialize an empty list
+
     # Processing Image
     if circles is not None:
         circles = np.uint16(np.around(circles))
         for circle in circles[0, :]:
-            src = detect_line(circle, src, gray)
-
-   # Detect clock hands
-    filtered_lines = []  # Initialize an empty list to store filtered lines
-
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        for circle in circles[0, :]:
-            src = detect_line(circle, src, gray)
-
+            src = detect_line(circle, src, gray, filtered_lines)  # Pass filtered_lines as an argument
+    
    # After detecting clock hands
     clock_hands = detect_clock_hands(filtered_lines)
 
@@ -55,7 +49,7 @@ def main():
     print("Exact Time:", exact_time)
 
     # Showing results
-    print('salio todo bien!')
+
     if environ.get('DOCKER_ENV'):
         return
     cv2.imshow("detected circles and lines", src)
