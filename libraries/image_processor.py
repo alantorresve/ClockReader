@@ -104,19 +104,25 @@ def draw_clock_hands_circles(source_image, lines_and_centers):
 
 
 ################################################
-def hands_angles(lines_and_centers):
-    for line in lines_and_centers:
+def hands_angle(lines_and_center):
+    for line in lines_and_center:
         x1, y1, x2, y2, angle, center_x, center_y = line[:7]
         if (x1, y1 == center_x, center_y):
             pointer_x, pointer_y = x2, y2
         else:
             pointer_x, pointer_y = x1, y1
-        print(pointer_x, pointer_y) #to debug
-        
 
+        radius = int(np.sqrt((x1 - x2)**2 + (y1 - y2)**2))
+        start_x, start_y = center_x, center_y + radius
+        vector_pointer = np.array([pointer_x - center_x, pointer_y - center_y])
+        vector_start = np.array([start_x - center_x, start_y - center_y])
+        oriented_angle = np.degrees(np.arctan2(vector_start[0] * vector_pointer[1] - vector_start[1] * vector_pointer[0],
+                                                vector_start[0] * vector_pointer[0] + vector_start[1] * vector_pointer[1]))
+        oriented_angle = (oriented_angle+360)%360
+        print("Oriented Angle:", oriented_angle)
+                  
 
-
-    return 
+    return oriented_angle #mientras nm
 ################################################
 def identify_clock_hands(filtered_lines):
     # Compute lengths for each line in the filtered_lines list
