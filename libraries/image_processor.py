@@ -67,7 +67,6 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
 
     return source_image
 
-###########################################
 
 def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
 
@@ -103,8 +102,22 @@ def draw_clock_hands_circles(source_image, lines_and_centers):
     
     return src_duplicate
 
-##############################################
 
+################################################
+def hands_angles(lines_and_centers):
+    for line in lines_and_centers:
+        x1, y1, x2, y2, angle, center_x, center_y = line[:7]
+        if (x1, y1 == center_x, center_y):
+            pointer_x, pointer_y = x2, y2
+        else:
+            pointer_x, pointer_y = x1, y1
+        print(pointer_x, pointer_y) #to debug
+        
+
+
+
+    return 
+################################################
 def identify_clock_hands(filtered_lines):
     # Compute lengths for each line in the filtered_lines list
     for line in filtered_lines:

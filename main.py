@@ -42,8 +42,12 @@ def main():
     lines_and_center = determine_closest_point_to_center(circle, filtered_lines, lines_and_center)
     
     duplicate = draw_clock_hands_circles(src, lines_and_center)
+    
+    hands_angles = []
 
-    clock_hands = identify_clock_hands(filtered_lines)
+    hands_angles = hands_angles(lines_and_center)
+
+    clock_hands = identify_clock_hands(pointer)
    
     exact_time = detect_exact_time(clock_hands)
     print("Exact Time:", exact_time)
