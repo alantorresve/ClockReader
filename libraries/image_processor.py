@@ -67,6 +67,44 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
 
     return source_image
 
+###########################################
+
+def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
+
+    center_x, center_y = circle[0], circle[1]
+   
+    for line in filtered_lines: 
+        x1, y1, x2, y2 = line[:4]
+        dist_to_point1 = np.sqrt((x1 - center_x)**2 + (y1 - center_y)**2)
+        dist_to_point2 = np.sqrt((x2 - center_x)**2 + (y2 - center_y)**2)
+
+        if dist_to_point1 < dist_to_point2:
+            closest_point = (x1, y1)
+        else:
+            closest_point = (x2, y2)
+
+        # Append the closest point to the line as new columns
+        line_with_closest_point = np.append(line, closest_point)
+        lines_and_center.append(line_with_closest_point)
+
+    lines_and_center = np.array(lines_and_center) 
+
+    return lines_and_center
+
+
+def draw_clock_hands_circles(source_image, lines_and_centers):
+
+    src_duplicate = source_image.copy()
+
+    for line in lines_and_centers:
+        x1, y1, x2, y2, angle, center_x, center_y = line[:7] 
+        radius = int(np.sqrt((x1 - x2)**2 + (y1 - y2)**2))
+        cv2.ellipse(src_duplicate, (int(center_x), int(center_y)), (radius, radius), angle, 0, 360, (0, 0, 255), 2)  # Red ellipse for each hand
+    
+    return src_duplicate
+
+##############################################
+
 def identify_clock_hands(filtered_lines):
     # Compute lengths for each line in the filtered_lines list
     for line in filtered_lines:

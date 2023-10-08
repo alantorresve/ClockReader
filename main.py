@@ -36,6 +36,13 @@ def main():
     else:
         print("Failed to detect circles in the image.")
         return
+    
+    lines_and_center = []
+
+    lines_and_center = determine_closest_point_to_center(circle, filtered_lines, lines_and_center)
+    
+    duplicate = draw_clock_hands_circles(src, lines_and_center)
+
     clock_hands = identify_clock_hands(filtered_lines)
    
     exact_time = detect_exact_time(clock_hands)
@@ -46,6 +53,7 @@ def main():
     if environ.get('DOCKER_ENV'):
         return
     cv2.imshow("detected circles and lines", src)
+    cv2.imshow("detected circles and lines", duplicate)
     cv2.imshow("Debug Image with Detected Hands", visual_debug_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
