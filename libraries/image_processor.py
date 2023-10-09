@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-
 def resize_image(src, width = 600):
     # Calculate the aspect ratio and resize the image
     height = int(src.shape[0] * (width / src.shape[1]))
@@ -28,11 +27,17 @@ def process_circles(gray_image):
 def detect_line(circle, source_image, gray_image, filtered_lines):
     center = (circle[0], circle[1])
     radius = circle[2]
+    
     # Draw circle center
-    cv2.circle(source_image, center, 1, (0, 100, 100), 3)
+    cv2.circle(source_image, center, 1, (255, 0, 0), 3)
+    
+    cv2.circle(source_image, (129, 408), 5, (255, 0, 0), 3)
+    cv2.circle(source_image, (455, 406), 5, (255, 0, 0), 3)
+    cv2.circle(source_image, (267, 159), 5, (255, 0, 0), 3)
+    # cv2.circle(source_image, (100,0), 20, (255, 0, 0), 3)
+    
     # Draw circle outline
     cv2.circle(source_image, center, radius, (255, 0, 255), 3)
-
     # Detect lines using Hough Line Transform
     edges = cv2.Canny(gray_image, 50, 150)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=60, maxLineGap=5)
@@ -70,10 +75,81 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
     return source_image
 
 
+# 
+def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
+
+    center_x, center_y = circle[0], circle[1]
+   
+    for line in filtered_lines: 
+        x1, y1, x2, y2 = line[:4]
+        dist_to_point1 = np.sqrt((x1 - center_x)**2 + (y1 - center_y)**2)
+        dist_to_point2 = np.sqrt((x2 - center_x)**2 + (y2 - center_y)**2)
+
+        if dist_to_point1 < dist_to_point2:
+            closest_point = (x1, y1)
+        else:
+            closest_point = (x2, y2)
+
+        # Append the closest point to the line as new columns
+        line_with_closest_point = np.append(line, closest_point)
+        lines_and_center.append(line_with_closest_point)
+
+    lines_and_center = np.array(lines_and_center) 
+
+    return lines_and_center
+
+
+def draw_clock_hands_circles(source_image, lines_and_centers):
+
+    src_duplicate = source_image.copy()
+
+    for line in lines_and_centers:
+        x1, y1, x2, y2, angle, center_x, center_y = line[:7] 
+        radius = int(np.sqrt((x1 - x2)**2 + (y1 - y2)**2))
+        cv2.ellipse(src_duplicate, (int(center_x), int(center_y)), (radius, radius), angle, 0, 360, (0, 0, 255), 2)  # REVISAR!!!!!!!!!!
+    
+    return src_duplicate
+
+
+################################################
+
+def hands_angle(lines_and_center):
+    
+    for line in lines_and_center:
+        x1, y1, x2, y2, angle, center_x, center_y = line[:7]
+        
+        if (x1 == center_x and y1 == center_y):
+            pointer_x, pointer_y = x2, y2
+        else:
+            pointer_x, pointer_y = x1, y1
+        
+        print( int(pointer_x), int(pointer_y), int(center_x), int(center_y))
+
+        radius = np.sqrt((x1 - x2)**2 + (y1 - y2)**2) #le saque un int pq me parecia innecesario
+        start_x, start_y = center_x, center_y + radius
+        vector_pointer = np.array([pointer_x - center_x, pointer_y - center_y])
+        vector_start = np.array([start_x - center_x, start_y - center_y])
+        
+        angle_pointer = np.degrees(np.arctan2(pointer_x - center_x, pointer_y - center_y))
+        
+        if 0 <= angle_pointer <= 90:
+            orientation_angle = 90 - angle_pointer
+        elif 90 < angle_pointer < 360:
+            orientation_angle = 360 - angle_pointer
+        else:
+            orientation_angle = abs(angle_pointer + 90)
+        
+                  
+
+    return orientation_angle #mientras nm
+
+################################################
+
+
 def identify_clock_hands(filtered_lines):
     # Compute lengths for each line in the filtered_lines list
     for line in filtered_lines:
-        x1, y1, x2, y2 = line[:4]
+        x1, y1, x2, y2, angle, center_x, center_y = line[:7]
         length = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
         line.append(length)
 
