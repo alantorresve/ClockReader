@@ -2,7 +2,7 @@ from libraries.image_processor import *  # Functions for process the image
 from os import environ
 from sys import argv
 
-DEFAULT_IMAGE_PATH = 'images\clock.jpeg'
+DEFAULT_IMAGE_PATH = 'images\clock10.jpg'
 
 def image_path():
     if len(argv) > 1:
