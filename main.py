@@ -2,7 +2,7 @@ from libraries.image_processor import *  # Functions for process the image
 from os import environ
 from sys import argv
 
-DEFAULT_IMAGE_PATH = 'images\clock6.png'
+DEFAULT_IMAGE_PATH = 'images\clock1.png'
 
 def image_path():
     if len(argv) > 1:
@@ -32,7 +32,7 @@ def main():
     if circles is not None:
         circles = np.uint16(np.around(circles))
         for circle in circles[0, :]:
-            src = detect_line(circle, src, gray, filtered_lines)  # Pass filtered_lines as an argument
+            src = detect_line_and_draw_circle(circle, src, gray, filtered_lines)  # Pass filtered_lines as an argument
     else:
         print("Failed to detect circles in the image.")
         return
@@ -40,31 +40,21 @@ def main():
     lines_and_center = []
 
     lines_and_center = determine_closest_point_to_center(circle, filtered_lines, lines_and_center)
-    
-    duplicate = draw_clock_hands_circles(src, lines_and_center)
-    
-    hands_angles = []
 
     hands = hands_angle(lines_and_center)
-    
-
-    #clock_hands = identify_clock_hands(hands_angles)
-    
+        
     exact_time = detect_exact_time(hands)
     
-    print("Exact Time:", exact_time)
-
-    # visual_debug_image = draw_detected_hands(src, clock_hands)
     
     
     # Showing results
     if environ.get('DOCKER_ENV'):
         return
+    print("Exact Time:", exact_time)
     cv2.imshow("detected circles and lines", src)
-    cv2.imshow("detected circles and lines", duplicate)
-    # cv2.imshow("Debug Image with Detected Hands", visual_debug_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+    display_time_in_tkinter(exact_time)
 
 if __name__ == "__main__":
     main()

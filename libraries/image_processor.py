@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import tkinter as tk
 
 def resize_image(src, width = 600):
     # Calculate the aspect ratio and resize the image
@@ -24,7 +25,7 @@ def process_circles(gray_image):
                                param1=100, param2=30, minRadius=200, maxRadius=500)
 
 
-def detect_line(circle, source_image, gray_image, filtered_lines):
+def detect_line_and_draw_circle(circle, source_image, gray_image, filtered_lines):
     center = (circle[0], circle[1])
     radius = circle[2]
     
@@ -71,7 +72,6 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
     return source_image
 
 
-# 
 def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
 
     center_x, center_y = circle[0], circle[1]
@@ -95,18 +95,6 @@ def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
     return lines_and_center
 
 
-def draw_clock_hands_circles(source_image, lines_and_centers):
-
-    src_duplicate = source_image.copy()
-
-    for line in lines_and_centers:
-        x1, y1, x2, y2, angle, center_x, center_y = line[:7] 
-        radius = int(np.sqrt((x1 - x2)**2 + (y1 - y2)**2))
-        cv2.ellipse(src_duplicate, (int(center_x), int(center_y)), (radius, radius), angle, 0, 360, (0, 0, 255), 2)  # REVISAR!!!!!!!!!!
-    
-    return src_duplicate
-
-
 def hands_angle(lines_and_center):
     
     for line in lines_and_center:
@@ -117,7 +105,7 @@ def hands_angle(lines_and_center):
         else:
             pointer_x, pointer_y = x1, y1
      
-        radius = np.sqrt((x1 - x2)**2 + (y1 - y2)**2) #le saque un int pq me parecia innecesario
+        radius = np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
         start_x, start_y = center_x, center_y + radius
         vector_pointer = np.array([pointer_x - center_x, pointer_y - center_y])
         vector_start = np.array([start_x - center_x, start_y - center_y])
@@ -138,9 +126,7 @@ def hands_angle(lines_and_center):
         
         #to find arctan
         angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
-        
-        #angle_pointer = np.degrees(np.arctan2(pointer_x - center_x, pointer_y - center_y))
-        
+                        
         if 0 <= angle_pointer < 360:
             orientation_angle = 90 + angle_pointer
         elif -90 < angle_pointer < 0:
@@ -173,11 +159,9 @@ def hands_angle(lines_and_center):
     if abs(expected_minute_angle - hands['minute'][4]) > 15:
         hands['minute'], hands['second'] = hands['second'], hands['minute']
   
-    #CONFIAR MIENTRAS TANTO OJOOOOOO
-    
+   
     return hands
 
-################################################
 
 def detect_exact_time(clock_hands):
     
@@ -189,50 +173,23 @@ def detect_exact_time(clock_hands):
     angle_minutes = minutes_hand[4]
     angle_hour = hour_hand[4]
 
-    hours_fractional = (angle_hour / 30) % 12
-    hours_whole = int(hours_fractional)
-    minutes_from_hour = (hours_fractional - hours_whole) * 60
-    minutes_from_minute_hand = (angle_minutes / 6) % 60
+    hour_read = (angle_hour / 360) * 12
+    minutes_read = (angle_minutes / 360) * 60
+    seconds_read = (angle_seconds / 360) * 60
+       
+    formatted_time = f"{int(hour_read):02d}:{int(minutes_read):02d}:{int(seconds_read):02d}"
 
-        # Consistency check
-        if abs(minutes_from_hour - minutes_from_minute_hand) <= 1:
-            print("Minute detection is consistent between the hour and minute hands.")
-        else:
-            print("Inconsistency detected in minute hand calculation.")
-        
-        seconds = int((angle_seconds / 6) % 60)
-
-        formatted_time = f"{hours_whole:02d}:{int(minutes_from_minute_hand):02d}:{seconds:02d}"
-
-        return formatted_time
-
-    else:
-        return "Clock hands not detected"
+    return formatted_time 
     
-    
-def draw_detected_hands(src, clock_hands):
-    src_duplicate = src.copy()
-    # BGR format for OpenCV
-    COLOR_HOUR = (0, 0, 255)  # Red
-    COLOR_MINUTE = (0, 255, 0)  # Green
-    COLOR_SECOND = (255, 0, 0)  # Blue
 
-    # Drawing hour hand
-    cv2.line(src_duplicate, 
-             (clock_hands['hour'][0], clock_hands['hour'][1]),  # x1, y1
-             (clock_hands['hour'][2], clock_hands['hour'][3]),  # x2, y2
-             COLOR_HOUR, 2)
-    
-    # Drawing minute hand
-    cv2.line(src_duplicate, 
-             (clock_hands['minute'][0], clock_hands['minute'][1]), 
-             (clock_hands['minute'][2], clock_hands['minute'][3]), 
-             COLOR_MINUTE, 2)
-    
-    # Drawing second hand
-    cv2.line(src_duplicate, 
-             (clock_hands['second'][0], clock_hands['second'][1]), 
-             (clock_hands['second'][2], clock_hands['second'][3]), 
-             COLOR_SECOND, 2)
+def display_time_in_tkinter(exact_time):
+    # Create a tkinter window for displaying the time
+    time_window = tk.Toplevel()
+    time_window.title('Exact Time')
 
-    return src_duplicate
+    # Create a label widget to display the time
+    label = tk.Label(time_window, font=('calibri', 20), background='white', foreground='black', text=exact_time)
+    label.pack()
+
+    # Start the tkinter main loop
+    time_window.mainloop()
