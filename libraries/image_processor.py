@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def resize_image(src, width = 600):
     # Calculate the aspect ratio and resize the image
     height = int(src.shape[0] * (width / src.shape[1]))
@@ -22,6 +23,7 @@ def process_circles(gray_image):
     return cv2.HoughCircles(gray_image, cv2.HOUGH_GRADIENT, dp=1,
                                minDist=gray_image.shape[0] / 1,
                                param1=100, param2=30, minRadius=200, maxRadius=500)
+
 
 def detect_line(circle, source_image, gray_image, filtered_lines):
     center = (circle[0], circle[1])
@@ -67,64 +69,7 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
 
     return source_image
 
-# def detect_clock_hands(filtered_lines):
-#     # Sort the lines by length from longest to shortest
-#     sorted_lines = sorted(filtered_lines, key=lambda x: np.sqrt((x[2] - x[0])*2 + (x[3] - x[1])*2), reverse=True)
 
-#     clock_hands = {
-#         'hour': None,
-#         'minutes': None,
-#         'seconds': None
-#     }
-
-#     # Take the three longest lines (seconds, minutes, and hour)
-#     for i, line in enumerate(sorted_lines[:3]):
-#         x1, y1, x2, y2, angle = line
-#         if i == 0:
-#             clock_hands['seconds'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
-#         elif i == 1:
-#             clock_hands['minutes'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
-#         elif i == 2:
-#             clock_hands['hour'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'angle': angle}
-
-#     return clock_hands
-
-# def verify_hands_by_length(hands_data):
-#     # Calculate length for each hand and store in the dictionary
-#     for hand, data in hands_data.items():
-#         coords = data.get('coords', (0, 0, 0, 0))
-#         x1, y1, x2, y2 = coords
-#         length = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
-#         hands_data[hand]['length'] = length
-
-#     # Print hands_data for debugging
-#     print(hands_data)
-
-#     # Sort hands based on their length
-#     sorted_hands = sorted(hands_data.items(), key=lambda item: item[1].get('length', 0), reverse=True)
-#     # Assign hands based on lengths
-#     clock_hands = {
-#         'seconds': sorted_hands[0][1],
-#         'minutes': sorted_hands[1][1],
-#         'hour': sorted_hands[2][1]
-#     }
-#     return clock_hands
-
-# def check_180_degree_shift(clock_hands):
-#     # Extract the angles
-#     hour_hand_angle = clock_hands['hour']['angle']
-#     minutes_hand_angle = clock_hands['minutes']['angle']
-
-#     # Calculate expected hours from the minute hand
-#     hour_from_minute = int(minutes_hand_angle / 30.0)
-#     hour_from_hour = int(hour_hand_angle / 30.0)
-
-#     # Check for a 180-degree shift
-#     if abs(hour_from_hour - hour_from_minute) == 6:
-#         # Adjust the angles by 180 degrees
-#         clock_hands['hour']['angle'] = (hour_hand_angle + 180) % 360
-
-#     return clock_hands
 def identify_clock_hands(filtered_lines):
     # Compute lengths for each line in the filtered_lines list
     for line in filtered_lines:
@@ -147,6 +92,8 @@ def identify_clock_hands(filtered_lines):
         hands['minute'], hands['second'] = hands['second'], hands['minute']
 
     return hands
+
+
 def detect_exact_time(clock_hands):
     if all(clock_hands.values()):
         hour_hand = clock_hands['hour']
@@ -176,6 +123,8 @@ def detect_exact_time(clock_hands):
 
     else:
         return "Clock hands not detected"
+    
+    
 def draw_detected_hands(src, clock_hands):
     src_duplicate = src.copy()
     # BGR format for OpenCV
