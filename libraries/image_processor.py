@@ -113,8 +113,6 @@ def hands_angle(lines_and_center):
         
         magnitude_pointer = np.linalg.norm(vector_pointer)
         magnitude_start = np.linalg.norm(vector_start)
-    
-        #FALTA PARA NAN!!!!!
         
         #to find cosine
         dot_product = np.dot(vector_pointer, vector_start)
@@ -125,15 +123,18 @@ def hands_angle(lines_and_center):
         determinant = np.linalg.det(matrix)
         sin_angle = (determinant/(magnitude_pointer*magnitude_start))
         
-        #to find arctan
-        angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
+        #to find arctan        
+        if cos_angle != 0:
+            angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
+        else:
+            angle_pointer = 90
                         
-        if 0 <= angle_pointer < 360:
+        if 0 <= angle_pointer < 180:
             orientation_angle = 90 + angle_pointer
-        elif -90 < angle_pointer < 0:
+        elif -90 <= angle_pointer < 0:
             orientation_angle = 90 + angle_pointer
         else:
-            orientation_angle = angle_pointer + 450
+             orientation_angle = angle_pointer + 450
     
         line[4] = orientation_angle
     
@@ -183,14 +184,12 @@ def detect_exact_time(clock_hands):
     return formatted_time 
     
 
-def display_time_in_tkinter(exact_time):
-    # Create a tkinter window for displaying the time
-    time_window = tk.Toplevel()
+def display_time(exact_time):
+# Create a tkinter window for displaying the time
+    time_window = tk.Tk()
     time_window.title('Exact Time')
 
-    # Create a label widget to display the time
-    label = tk.Label(time_window, font=('calibri', 60), background='white', foreground='black', text=exact_time)
+    # Create a label widget to display the exact time
+    label = tk.Label(time_window, font=('Arial', 60), background='white', foreground='black', text=exact_time)
     label.pack()
-
-    # Start the tkinter main loop
     time_window.mainloop()

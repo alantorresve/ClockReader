@@ -52,7 +52,7 @@ def main():
         return
     print("Exact Time:", exact_time)
     cv2.imshow("detected circles and lines", src)
-    display_time_in_tkinter(exact_time)
+    display_time(exact_time)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
