@@ -32,8 +32,8 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
     cv2.circle(source_image, center, 1, (255, 0, 0), 3)
     
     cv2.circle(source_image, (129, 408), 5, (255, 0, 0), 3)
-    cv2.circle(source_image, (455, 406), 5, (255, 0, 0), 3)
-    cv2.circle(source_image, (267, 159), 5, (255, 0, 0), 3)
+    cv2.circle(source_image, (455, 406), 5, (0, 255, 0), 3)
+    cv2.circle(source_image, (267, 159), 5, (0, 0, 255), 3)
     # cv2.circle(source_image, (100,0), 20, (255, 0, 0), 3)
     
     # Draw circle outline
@@ -123,38 +123,58 @@ def hands_angle(lines_and_center):
         else:
             pointer_x, pointer_y = x1, y1
         
-        print( int(pointer_x), int(pointer_y), int(center_x), int(center_y))
+        print(int(pointer_x), int(pointer_y))
 
         radius = np.sqrt((x1 - x2)**2 + (y1 - y2)**2) #le saque un int pq me parecia innecesario
         start_x, start_y = center_x, center_y + radius
         vector_pointer = np.array([pointer_x - center_x, pointer_y - center_y])
         vector_start = np.array([start_x - center_x, start_y - center_y])
         
-        angle_pointer = np.degrees(np.arctan2(pointer_x - center_x, pointer_y - center_y))
+        magnitude_pointer = np.linalg.norm(vector_pointer)
+        magnitude_start = np.linalg.norm(vector_start)
+    
+        #FALTA PARA NAN!!!!!
         
-        if 0 <= angle_pointer <= 90:
-            orientation_angle = 90 - angle_pointer
-        elif 90 < angle_pointer < 360:
-            orientation_angle = 360 - angle_pointer
+        #to find cosine
+        dot_product = np.dot(vector_pointer, vector_start)
+        cos_angle = (dot_product/(magnitude_pointer*magnitude_start))
+        
+        #to find sine
+        matrix = np.array([vector_pointer, vector_start])
+        determinant = np.linalg.det(matrix)
+        sin_angle = (determinant/(magnitude_pointer*magnitude_start))
+        
+        #to find arctan
+        angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
+        
+        #angle_pointer = np.degrees(np.arctan2(pointer_x - center_x, pointer_y - center_y))
+        
+        if 0 <= angle_pointer < 360:
+            orientation_angle = 90 + angle_pointer
+        elif -90 < angle_pointer < 0:
+            orientation_angle = 90 + angle_pointer
         else:
-            orientation_angle = abs(angle_pointer + 90)
+            orientation_angle = angle_pointer + 450
         
+        print(orientation_angle)
                   
 
-    return orientation_angle #mientras nm
+    return orientation_angle 
 
 ################################################
 
 
-def identify_clock_hands(filtered_lines):
+def identify_clock_hands(lines_and_center):
     # Compute lengths for each line in the filtered_lines list
-    for line in filtered_lines:
+    for line in lines_and_center:
         x1, y1, x2, y2, angle, center_x, center_y = line[:7]
-        length = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
-        line.append(length)
+        vector_length = np.array([x1 - x2, y1 - y2])
+        length = np.linalg.norm(vector_length)
+        length_array = []
+        length_array.append(length)
 
     # Sort lines based on their lengths
-    sorted_hands = sorted(filtered_lines, key=lambda x: x[5], reverse=True)
+    sorted_hands = sorted(length_array, key=lambda x: x[5], reverse=True)
 
     hands = {
         'hour': sorted_hands[2],
