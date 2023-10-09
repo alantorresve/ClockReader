@@ -123,13 +123,9 @@ def hands_angle(lines_and_center):
         determinant = np.linalg.det(matrix)
         sin_angle = (determinant/(magnitude_pointer*magnitude_start))
         
-        #to find arctan        
-        if cos_angle != 0:
-            angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
-        else:
-            angle_pointer = 90
+        angle_pointer = np.degrees(np.arctan2(cos_angle, sin_angle))
                         
-        if 0 <= angle_pointer < 180:
+        if 0 <= angle_pointer <= 180:
             orientation_angle = 90 + angle_pointer
         elif -90 <= angle_pointer < 0:
             orientation_angle = 90 + angle_pointer
