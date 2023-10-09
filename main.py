@@ -45,10 +45,10 @@ def main():
     
     hands_angles = []
 
-    orientation_angle = hands_angle(lines_and_center)
+    hands = hands_angle(lines_and_center)
     
 
-    clock_hands = identify_clock_hands(hands_angles)
+    #clock_hands = identify_clock_hands(hands_angles)
     # exact_time = detect_exact_time(clock_hands)
     # print("Exact Time:", exact_time)
 

@@ -93,7 +93,7 @@ def determine_closest_point_to_center(circle, filtered_lines, lines_and_center):
         # Append the closest point to the line as new columns
         line_with_closest_point = np.append(line, closest_point)
         lines_and_center.append(line_with_closest_point)
-
+    
     lines_and_center = np.array(lines_and_center) 
 
     return lines_and_center
@@ -122,9 +122,7 @@ def hands_angle(lines_and_center):
             pointer_x, pointer_y = x2, y2
         else:
             pointer_x, pointer_y = x1, y1
-        
-        print(int(pointer_x), int(pointer_y))
-
+     
         radius = np.sqrt((x1 - x2)**2 + (y1 - y2)**2) #le saque un int pq me parecia innecesario
         start_x, start_y = center_x, center_y + radius
         vector_pointer = np.array([pointer_x - center_x, pointer_y - center_y])
@@ -155,39 +153,62 @@ def hands_angle(lines_and_center):
             orientation_angle = 90 + angle_pointer
         else:
             orientation_angle = angle_pointer + 450
-        
-        print(orientation_angle)
-                  
-
-    return orientation_angle 
-
-################################################
-
-
-def identify_clock_hands(lines_and_center):
-    # Compute lengths for each line in the filtered_lines list
+    
+        line[4] = orientation_angle
+    
+    length = []
+    
     for line in lines_and_center:
-        x1, y1, x2, y2, angle, center_x, center_y = line[:7]
-        vector_length = np.array([x1 - x2, y1 - y2])
-        length = np.linalg.norm(vector_length)
-        length_array = []
-        length_array.append(length)
-
+        x1, y1, x2, y2, orientation_angle, center_x, center_y = line[:7]
+        l = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
+        length.append(l)
+        
+    result_array = np.column_stack((lines_and_center, length))
+    
     # Sort lines based on their lengths
-    sorted_hands = sorted(length_array, key=lambda x: x[5], reverse=True)
+    sorted_hands = sorted(result_array, key=lambda x: x[7], reverse=True)
 
     hands = {
         'hour': sorted_hands[2],
         'minute': sorted_hands[1],
         'second': sorted_hands[0]
-    }
+    }  
+     
+    #  # Find the expected minute angle based on the hours hand
+    # expected_minute_angle = (hands['hour'][4] / 12) 
+    # if abs(expected_minute_angle - hands['minute'][4]) > 15:
+    #     hands['minute'], hands['second'] = hands['second'], hands['minute']
 
-    # Find the expected minute angle based on the hours hand
-    expected_minute_angle = (hands['hour'][4] * 12) % 360
-    if abs(expected_minute_angle - hands['minute'][4]) > 15:
-        hands['minute'], hands['second'] = hands['second'], hands['minute']
-
+    print(hands)   
+    
     return hands
+
+################################################
+
+
+# def identify_clock_hands(lines_and_center):
+#     # Compute lengths for each line in the filtered_lines list
+#     for line in lines_and_center:
+#         x1, y1, x2, y2, angle, center_x, center_y = line[:7]
+#         vector_length = np.array([x1 - x2, y1 - y2])
+#         length = np.linalg.norm(vector_length)
+#         line.append(length)
+
+#     # Sort lines based on their lengths
+#     sorted_hands = sorted(lines_and_center, key=lambda x: x[5], reverse=True)
+
+#     hands = {
+#         'hour': sorted_hands[2],
+#         'minute': sorted_hands[1],
+#         'second': sorted_hands[0]
+#     }
+
+#     # Find the expected minute angle based on the hours hand
+#     expected_minute_angle = (hands['hour'][4] * 12) % 360
+#     if abs(expected_minute_angle - hands['minute'][4]) > 15:
+#         hands['minute'], hands['second'] = hands['second'], hands['minute']
+
+#     return hands
 
 
 def detect_exact_time(clock_hands):
