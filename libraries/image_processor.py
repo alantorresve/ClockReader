@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import tkinter as tk
+from time import strftime
 
 def resize_image(src, width = 600):
     # Calculate the aspect ratio and resize the image
@@ -188,7 +189,7 @@ def display_time_in_tkinter(exact_time):
     time_window.title('Exact Time')
 
     # Create a label widget to display the time
-    label = tk.Label(time_window, font=('calibri', 20), background='white', foreground='black', text=exact_time)
+    label = tk.Label(time_window, font=('calibri', 60), background='white', foreground='black', text=exact_time)
     label.pack()
 
     # Start the tkinter main loop
