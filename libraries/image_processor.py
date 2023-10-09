@@ -31,13 +31,9 @@ def detect_line(circle, source_image, gray_image, filtered_lines):
     # Draw circle center
     cv2.circle(source_image, center, 1, (255, 0, 0), 3)
     
-    cv2.circle(source_image, (129, 408), 5, (255, 0, 0), 3)
-    cv2.circle(source_image, (455, 406), 5, (0, 255, 0), 3)
-    cv2.circle(source_image, (267, 159), 5, (0, 0, 255), 3)
-    # cv2.circle(source_image, (100,0), 20, (255, 0, 0), 3)
-    
     # Draw circle outline
     cv2.circle(source_image, center, radius, (255, 0, 255), 3)
+    
     # Detect lines using Hough Line Transform
     edges = cv2.Canny(gray_image, 50, 150)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=60, maxLineGap=5)
@@ -111,8 +107,6 @@ def draw_clock_hands_circles(source_image, lines_and_centers):
     return src_duplicate
 
 
-################################################
-
 def hands_angle(lines_and_center):
     
     for line in lines_and_center:
@@ -160,7 +154,7 @@ def hands_angle(lines_and_center):
     
     for line in lines_and_center:
         x1, y1, x2, y2, orientation_angle, center_x, center_y = line[:7]
-        l = np.sqrt((x2 - x1)*2 + (y2 - y1)*2)
+        l = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
         length.append(l)
         
     result_array = np.column_stack((lines_and_center, length))
@@ -174,57 +168,31 @@ def hands_angle(lines_and_center):
         'second': sorted_hands[0]
     }  
      
-    #  # Find the expected minute angle based on the hours hand
-    # expected_minute_angle = (hands['hour'][4] / 12) 
-    # if abs(expected_minute_angle - hands['minute'][4]) > 15:
-    #     hands['minute'], hands['second'] = hands['second'], hands['minute']
-
-    print(hands)   
+     # Find the expected minute angle based on the hours hand
+    expected_minute_angle = (hands['hour'][4] * 12) % 360
+    if abs(expected_minute_angle - hands['minute'][4]) > 15:
+        hands['minute'], hands['second'] = hands['second'], hands['minute']
+  
+    #CONFIAR MIENTRAS TANTO OJOOOOOO
     
     return hands
 
 ################################################
 
-
-# def identify_clock_hands(lines_and_center):
-#     # Compute lengths for each line in the filtered_lines list
-#     for line in lines_and_center:
-#         x1, y1, x2, y2, angle, center_x, center_y = line[:7]
-#         vector_length = np.array([x1 - x2, y1 - y2])
-#         length = np.linalg.norm(vector_length)
-#         line.append(length)
-
-#     # Sort lines based on their lengths
-#     sorted_hands = sorted(lines_and_center, key=lambda x: x[5], reverse=True)
-
-#     hands = {
-#         'hour': sorted_hands[2],
-#         'minute': sorted_hands[1],
-#         'second': sorted_hands[0]
-#     }
-
-#     # Find the expected minute angle based on the hours hand
-#     expected_minute_angle = (hands['hour'][4] * 12) % 360
-#     if abs(expected_minute_angle - hands['minute'][4]) > 15:
-#         hands['minute'], hands['second'] = hands['second'], hands['minute']
-
-#     return hands
-
-
 def detect_exact_time(clock_hands):
-    if all(clock_hands.values()):
-        hour_hand = clock_hands['hour']
-        minutes_hand = clock_hands['minute']
-        seconds_hand = clock_hands['second']
+    
+    hour_hand = clock_hands['hour']
+    minutes_hand = clock_hands['minute']
+    seconds_hand = clock_hands['second']
 
-        angle_seconds = seconds_hand[4]
-        angle_minutes = minutes_hand[4]
-        angle_hour = hour_hand[4]
+    angle_seconds = seconds_hand[4]
+    angle_minutes = minutes_hand[4]
+    angle_hour = hour_hand[4]
 
-        hours_fractional = (angle_hour / 30) % 12
-        hours_whole = int(hours_fractional)
-        minutes_from_hour = (hours_fractional - hours_whole) * 60
-        minutes_from_minute_hand = (angle_minutes / 6) % 60
+    hours_fractional = (angle_hour / 30) % 12
+    hours_whole = int(hours_fractional)
+    minutes_from_hour = (hours_fractional - hours_whole) * 60
+    minutes_from_minute_hand = (angle_minutes / 6) % 60
 
         # Consistency check
         if abs(minutes_from_hour - minutes_from_minute_hand) <= 1:

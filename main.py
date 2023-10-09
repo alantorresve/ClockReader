@@ -2,7 +2,7 @@ from libraries.image_processor import *  # Functions for process the image
 from os import environ
 from sys import argv
 
-DEFAULT_IMAGE_PATH = 'images\clock1.png'
+DEFAULT_IMAGE_PATH = 'images\clock6.png'
 
 def image_path():
     if len(argv) > 1:
@@ -49,8 +49,10 @@ def main():
     
 
     #clock_hands = identify_clock_hands(hands_angles)
-    # exact_time = detect_exact_time(clock_hands)
-    # print("Exact Time:", exact_time)
+    
+    exact_time = detect_exact_time(hands)
+    
+    print("Exact Time:", exact_time)
 
     # visual_debug_image = draw_detected_hands(src, clock_hands)
     
