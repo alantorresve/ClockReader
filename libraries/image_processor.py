@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import tkinter as tk
-from time import strftime
 
 def resize_image(src, width = 600):
     # Calculate the aspect ratio and resize the image
@@ -52,7 +51,7 @@ def detect_line_and_draw_circle(circle, source_image, gray_image, filtered_lines
                 if len(filtered_lines) > 0:
                     for existing_line in filtered_lines:
                         if abs(angle - existing_line[-1]) < 10:
-                            length = np.sqrt((x2 - x1) * 2 + (y2 - y1) * 2)
+                            length = np.sqrt((x2 - x1)** 2 + (y2 - y1)** 2)
                             length_ = np.sqrt(
                                 (existing_line[2] - existing_line[0]) ** 2 +
                                 (existing_line[3] - existing_line[1]) ** 2
